@@ -13,7 +13,6 @@ const upload = multer({ storage: multer.memoryStorage() }); // Store file in mem
 
 const app = express();
 app.use(express.json());
-const cors = require('cors');
 app.use(cors({ origin: 'https://sportspot-frontend.vercel.app/' }));
 
 
