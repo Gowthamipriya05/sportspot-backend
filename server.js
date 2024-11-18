@@ -7,7 +7,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const multer = require('multer');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 const upload = multer({ storage: multer.memoryStorage() }); // Store file in memory
 
