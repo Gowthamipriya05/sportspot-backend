@@ -72,7 +72,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Register endpoint
-app.post('https://sportspot-backend.onrender.com/register', async (req, res) => {
+app.post('/register', async (req, res) => {
   const { name, enroll_number, branch, email, password, mobile, designation, stream, year } = req.body;
 
   // Generate OTP
@@ -117,7 +117,7 @@ app.post('https://sportspot-backend.onrender.com/register', async (req, res) => 
 });
 
 // Login API
-app.post('https://sportspot-backend.onrender.com/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -149,7 +149,7 @@ app.post('https://sportspot-backend.onrender.com/login', async (req, res) => {
 });
 
 // Verify OTP API
-app.post('https://sportspot-backend.onrender.com/verify-otp', async (req, res) => {
+app.post('/verify-otp', async (req, res) => {
   const { email, otp } = req.body;
 
   const otpData = req.app.locals.otpStore ? req.app.locals.otpStore[email] : null;
@@ -168,7 +168,7 @@ app.post('https://sportspot-backend.onrender.com/verify-otp', async (req, res) =
 
 
 // Check if email already exists
-app.post('https://sportspot-backend.onrender.com/check-email', async (req, res) => {
+app.post('/check-email', async (req, res) => {
   const { email } = req.body;
 
   try {
@@ -183,7 +183,7 @@ app.post('https://sportspot-backend.onrender.com/check-email', async (req, res) 
 
 
 // API endpoint to fetch issued items with emails
-app.get('https://sportspot-backend.onrender.com/items-issued', async (req, res) => {
+app.get('/items-issued', async (req, res) => {
   try {
     const itemsIssue = await ItemsIssued.find();
 
@@ -206,7 +206,7 @@ app.get('https://sportspot-backend.onrender.com/items-issued', async (req, res) 
 });
 
 // Products API (Fetch all products)
-app.get('https://sportspot-backend.onrender.com/products', async (req, res) => {
+app.get('/products', async (req, res) => {
   try {
     const items = await Item.find();
     res.status(200).json(items);
@@ -216,7 +216,7 @@ app.get('https://sportspot-backend.onrender.com/products', async (req, res) => {
   }
 });
 
-app.post('https://sportspot-backend.onrender.com/issue-item', async (req, res) => {
+app.post('/issue-item', async (req, res) => {
   const { s_enroll_number, it_name, issue_date, return_date, it_quantity,it_status } = req.body;
 
   if (!it_name) {
@@ -236,7 +236,7 @@ app.post('https://sportspot-backend.onrender.com/issue-item', async (req, res) =
 
 
 // Update Item Quantity API
-app.put('https://sportspot-backend.onrender.com/update-item/:id', async (req, res) => {
+app.put('/update-item/:id', async (req, res) => {
   const { id } = req.params;
   const { it_quantity } = req.body;
 
@@ -252,7 +252,7 @@ app.put('https://sportspot-backend.onrender.com/update-item/:id', async (req, re
 
 
 // Reset Password API
-app.put('https://sportspot-backend.onrender.com/reset-password', async (req, res) => {
+app.put('/reset-password', async (req, res) => {
   const { email, newPassword } = req.body;
 
   try {
@@ -268,7 +268,7 @@ app.put('https://sportspot-backend.onrender.com/reset-password', async (req, res
 });
 
 // API to handle CSV uploads and store in MongoDB
-app.post('https://sportspot-backend.onrender.com/upload-inventory', async (req, res) => {
+app.post('/upload-inventory', async (req, res) => {
   try {
     const inventoryData = req.body; // Assuming CSV data is sent in the request body
     console.log('Received inventory data:', inventoryData); // Log incoming data
@@ -299,7 +299,7 @@ app.post('https://sportspot-backend.onrender.com/upload-inventory', async (req, 
 });
 
 // API to get user details by email
-app.post('https://sportspot-backend.onrender.com/get-user', async (req, res) => {
+app.post('/get-user', async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -320,7 +320,7 @@ app.post('https://sportspot-backend.onrender.com/get-user', async (req, res) => 
 });
 
 
-app.get('https://sportspot-backend.onrender.com/items-issued-by-batch', async (req, res) => {
+app.get('/items-issued-by-batch', async (req, res) => {
   try {
     const students = await Student.find().select("s_enroll_number s_year");
     const enrollmentToBatch = {};
@@ -345,7 +345,7 @@ app.get('https://sportspot-backend.onrender.com/items-issued-by-batch', async (r
 });
 
 
-app.get('https://sportspot-backend.onrender.com/items-issued-by-stream', async (req, res) => {
+app.get('/items-issued-by-stream', async (req, res) => {
   try {
     const students = await Student.find({ s_stream: "B.Tech" }).select("s_enroll_number");
     const enrollmentNumbers = students.map(student => student.s_enroll_number);
@@ -365,7 +365,7 @@ app.get('https://sportspot-backend.onrender.com/items-issued-by-stream', async (
 
 
 // Route to retrieve issued items by enrollment number
-app.get('https://sportspot-backend.onrender.com/issued-items/:enrollmentNumber', async (req, res) => {
+app.get('/issued-items/:enrollmentNumber', async (req, res) => {
   const { enrollmentNumber } = req.params;
 
   try {
@@ -378,7 +378,7 @@ app.get('https://sportspot-backend.onrender.com/issued-items/:enrollmentNumber',
 
 // Return item API
 // Endpoint for returning item and updating status
-app.put('https://sportspot-backend.onrender.com/return-item/:id', async (req, res) => {
+app.put('/return-item/:id', async (req, res) => {
   const { id } = req.params;
   const { return_date, it_status } = req.body;
 
@@ -392,7 +392,7 @@ app.put('https://sportspot-backend.onrender.com/return-item/:id', async (req, re
   }
 });
 
-app.put('https://sportspot-backend.onrender.com/update-item-quantity/:it_name', async (req, res) => {
+app.put('/update-item-quantity/:it_name', async (req, res) => {
   const name = req.params.it_name.trim(); // Trim whitespace from the received item name
   const { quantity } = req.body;
 
@@ -436,6 +436,7 @@ app.put('https://sportspot-backend.onrender.com/update-item-quantity/:it_name', 
     res.status(500).send({ message: 'Failed to update item quantity', error: err });
   }
 });
+
 
 
 // Start the server
