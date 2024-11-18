@@ -13,14 +13,8 @@ const upload = multer({ storage: multer.memoryStorage() }); // Store file in mem
 
 const app = express();
 app.use(express.json());
-// Use CORS to allow requests from specific origin
-const corsOptions = {
-  origin: 'https://sportspot-frontend.vercel.app', // Replace with your frontend domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-};
-
-app.use(cors(corsOptions)); // Apply the CORS middleware with the specific options
+const cors = require('cors');
+app.use(cors({ origin: 'https://sportspot-frontend.vercel.app/' }));
 
 
 app.use(bodyParser.json());
