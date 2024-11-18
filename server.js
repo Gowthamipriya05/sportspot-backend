@@ -13,7 +13,16 @@ const upload = multer({ storage: multer.memoryStorage() }); // Store file in mem
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+// Use CORS to allow requests from specific origin
+const corsOptions = {
+  origin: 'https://sportspot-frontend.vercel.app', // Replace with your frontend domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+};
+
+app.use(cors(corsOptions)); // Apply the CORS middleware with the specific options
+
+
 app.use(bodyParser.json());
 
 // Connect to MongoDB Atlas using the URI from .env file
@@ -63,7 +72,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Register endpoint
-app.post('/register', async (req, res) => {
+app.post('https://sportspot-backend.onrender.com/register', async (req, res) => {
   const { name, enroll_number, branch, email, password, mobile, designation, stream, year } = req.body;
 
   // Generate OTP
@@ -108,7 +117,7 @@ app.post('/register', async (req, res) => {
 });
 
 // Login API
-app.post('/login', async (req, res) => {
+app.post('https://sportspot-backend.onrender.com/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -140,7 +149,7 @@ app.post('/login', async (req, res) => {
 });
 
 // Verify OTP API
-app.post('/verify-otp', async (req, res) => {
+app.post('https://sportspot-backend.onrender.com/verify-otp', async (req, res) => {
   const { email, otp } = req.body;
 
   const otpData = req.app.locals.otpStore ? req.app.locals.otpStore[email] : null;
@@ -159,7 +168,7 @@ app.post('/verify-otp', async (req, res) => {
 
 
 // Check if email already exists
-app.post('/check-email', async (req, res) => {
+app.post('https://sportspot-backend.onrender.com/check-email', async (req, res) => {
   const { email } = req.body;
 
   try {
@@ -174,7 +183,7 @@ app.post('/check-email', async (req, res) => {
 
 
 // API endpoint to fetch issued items with emails
-app.get('/items-issued', async (req, res) => {
+app.get('https://sportspot-backend.onrender.com/items-issued', async (req, res) => {
   try {
     const itemsIssue = await ItemsIssued.find();
 
@@ -197,7 +206,7 @@ app.get('/items-issued', async (req, res) => {
 });
 
 // Products API (Fetch all products)
-app.get('/products', async (req, res) => {
+app.get('https://sportspot-backend.onrender.com/products', async (req, res) => {
   try {
     const items = await Item.find();
     res.status(200).json(items);
@@ -207,7 +216,7 @@ app.get('/products', async (req, res) => {
   }
 });
 
-app.post('/issue-item', async (req, res) => {
+app.post('https://sportspot-backend.onrender.com/issue-item', async (req, res) => {
   const { s_enroll_number, it_name, issue_date, return_date, it_quantity,it_status } = req.body;
 
   if (!it_name) {
@@ -227,7 +236,7 @@ app.post('/issue-item', async (req, res) => {
 
 
 // Update Item Quantity API
-app.put('/update-item/:id', async (req, res) => {
+app.put('https://sportspot-backend.onrender.com/update-item/:id', async (req, res) => {
   const { id } = req.params;
   const { it_quantity } = req.body;
 
@@ -243,7 +252,7 @@ app.put('/update-item/:id', async (req, res) => {
 
 
 // Reset Password API
-app.put('/reset-password', async (req, res) => {
+app.put('https://sportspot-backend.onrender.com/reset-password', async (req, res) => {
   const { email, newPassword } = req.body;
 
   try {
@@ -259,7 +268,7 @@ app.put('/reset-password', async (req, res) => {
 });
 
 // API to handle CSV uploads and store in MongoDB
-app.post('/upload-inventory', async (req, res) => {
+app.post('https://sportspot-backend.onrender.com/upload-inventory', async (req, res) => {
   try {
     const inventoryData = req.body; // Assuming CSV data is sent in the request body
     console.log('Received inventory data:', inventoryData); // Log incoming data
@@ -290,7 +299,7 @@ app.post('/upload-inventory', async (req, res) => {
 });
 
 // API to get user details by email
-app.post('/get-user', async (req, res) => {
+app.post('https://sportspot-backend.onrender.com/get-user', async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -311,7 +320,7 @@ app.post('/get-user', async (req, res) => {
 });
 
 
-app.get('/items-issued-by-batch', async (req, res) => {
+app.get('https://sportspot-backend.onrender.com/items-issued-by-batch', async (req, res) => {
   try {
     const students = await Student.find().select("s_enroll_number s_year");
     const enrollmentToBatch = {};
@@ -336,7 +345,7 @@ app.get('/items-issued-by-batch', async (req, res) => {
 });
 
 
-app.get('/items-issued-by-stream', async (req, res) => {
+app.get('https://sportspot-backend.onrender.com/items-issued-by-stream', async (req, res) => {
   try {
     const students = await Student.find({ s_stream: "B.Tech" }).select("s_enroll_number");
     const enrollmentNumbers = students.map(student => student.s_enroll_number);
@@ -356,7 +365,7 @@ app.get('/items-issued-by-stream', async (req, res) => {
 
 
 // Route to retrieve issued items by enrollment number
-app.get('/issued-items/:enrollmentNumber', async (req, res) => {
+app.get('https://sportspot-backend.onrender.com/issued-items/:enrollmentNumber', async (req, res) => {
   const { enrollmentNumber } = req.params;
 
   try {
@@ -369,7 +378,7 @@ app.get('/issued-items/:enrollmentNumber', async (req, res) => {
 
 // Return item API
 // Endpoint for returning item and updating status
-app.put('/return-item/:id', async (req, res) => {
+app.put('https://sportspot-backend.onrender.com/return-item/:id', async (req, res) => {
   const { id } = req.params;
   const { return_date, it_status } = req.body;
 
@@ -383,7 +392,7 @@ app.put('/return-item/:id', async (req, res) => {
   }
 });
 
-app.put('/update-item-quantity/:it_name', async (req, res) => {
+app.put('https://sportspot-backend.onrender.com/update-item-quantity/:it_name', async (req, res) => {
   const name = req.params.it_name.trim(); // Trim whitespace from the received item name
   const { quantity } = req.body;
 
@@ -425,112 +434,6 @@ app.put('/update-item-quantity/:it_name', async (req, res) => {
   } catch (err) {
     console.error('Error updating item quantity:', err);
     res.status(500).send({ message: 'Failed to update item quantity', error: err });
-  }
-});
-
-
-app.get('/stream-batch', async (req, res) => {
-  try {
-    const itemsIssue = await ItemsIssued.find();
-
-    // Fetch stream and batch for each issued item
-    const combinedCounts = {};
-    for (const item of itemsIssue) {
-      const user = await Student.findOne({ s_enroll_number: item.s_enroll_number });
-      const stream = user ? user.s_stream : 'Unknown';
-      const batch = user ? user.s_year : 'Unknown';
-
-      const key = `${stream}-${batch}`;
-      if (key in combinedCounts) {
-        combinedCounts[key].add(item.s_enroll_number);
-      } else {
-        combinedCounts[key] = new Set([item.s_enroll_number]);
-      }
-    }
-
-    // Convert counts to array format
-    const response = Object.entries(combinedCounts).map(([key, enrollSet]) => {
-      const [stream, batch] = key.split('-');
-      return { stream, batch, studentCount: enrollSet.size };
-    });
-
-    res.json(response);
-  } catch (error) {
-    console.error('Error fetching stream-batch analysis:', error);
-    res.status(500).json({ message: 'Failed to fetch stream-batch analysis' });
-  }
-});
-
-
-
-app.get('/batch-wise', async (req, res) => {
-  try {
-    // Retrieve all issued items and relevant student data in one go
-    const itemsIssue = await ItemsIssued.find();
-    const studentEnrollNumbers = itemsIssue.map(item => item.s_enroll_number);
-
-    // Retrieve all student records that match the enrollment numbers from the items issued
-    const students = await Student.find({
-      s_enroll_number: { $in: studentEnrollNumbers },
-    });
-
-    // Create a map for counting unique enrollments by year
-    const batchCounts = {};
-
-    for (const student of students) {
-      const batch = student.s_year || 'Unknown';
-
-      if (!batchCounts[batch]) {
-        batchCounts[batch] = new Set();
-      }
-
-      // Add the student's enrollment number to the set for uniqueness
-      batchCounts[batch].add(student.s_enroll_number);
-    }
-
-    // Convert batchCounts to an array format with student counts
-    const response = Object.entries(batchCounts).map(([batch, enrollSet]) => ({
-      batch,
-      studentCount: enrollSet.size,
-    }));
-
-    res.json(response);
-  } catch (error) {
-    console.error('Error fetching batch-wise analysis:', error);
-    res.status(500).json({ message: 'Failed to fetch batch-wise analysis' });
-  }
-});
-
-
-
-
-app.get('/stream-wise', async (req, res) => {
-  try {
-    const itemsIssue = await ItemsIssued.find();
-
-    // Fetch stream for each issued item
-    const streamCounts = {};
-    for (const item of itemsIssue) {
-      const user = await Student.findOne({ s_enroll_number: item.s_enroll_number });
-      const stream = user ? user.s_stream : 'Unknown';
-
-      if (stream in streamCounts) {
-        streamCounts[stream].add(item.s_enroll_number);
-      } else {
-        streamCounts[stream] = new Set([item.s_enroll_number]);
-      }
-    }
-
-    // Convert counts to array format
-    const response = Object.entries(streamCounts).map(([stream, enrollSet]) => ({
-      stream,
-      studentCount: enrollSet.size,
-    }));
-
-    res.json(response);
-  } catch (error) {
-    console.error('Error fetching stream-wise analysis:', error);
-    res.status(500).json({ message: 'Failed to fetch stream-wise analysis' });
   }
 });
 
