@@ -429,41 +429,40 @@ app.put('/return-item/:id', async (req, res) => {
 //   }
 // });
 
-app.put('/update-item-quantity/:it_name', async (req, res) => {
-  const name = req.params.it_name.trim(); // Trim whitespace from the received item name
-  const { quantity } = req.body;
+app.put('/update-item-quantity/:id', async (req, res) => {
+  const { id } = req.params; // Extract the item ID from the route parameter
+  const { quantity } = req.body; // Extract the quantity from the request body
 
   // Validate quantity
   if (!Number.isFinite(quantity)) {
     return res.status(400).send({ message: 'Invalid quantity provided' });
   }
 
-  console.log('Received it_name:', name);
+  console.log('Received item ID:', id);
 
   try {
-    // Normalize item names in the database (trim spaces)
-    const items = await Item.find({});
-    const updatePromises = items.map(async (item) => {
-      const trimmedName = item.it_name.trim();
-      if (trimmedName !== item.it_name) {
-        await Item.updateOne({ _id: item._id }, { it_name: trimmedName });
-        console.log(`Updated item name: "${item.it_name}" to "${trimmedName}"`);
-      }
-    });
+    // Find the item by its ID
+    const item = await ItemsIssued.findById(id);
 
-    await Promise.all(updatePromises); // Wait for all name updates to complete
-
-    // Find the item (case-insensitive match)
-    const item = await Item.findOne({ it_name: new RegExp(`^${name}$`, 'i') });
     if (!item) {
-      return res
-        .status(404)
-        .send({ message: `Item with name "${name}" not found` });
+      return res.status(404).send({ message: `Item with ID "${id}" not found` });
+    }
+
+    // Extract the item name from the found item
+    const itemName = item.it_name.trim();
+
+    console.log(`Found item: "${itemName}" with current quantity: ${item.it_quantity}`);
+
+    // Match the item by its name in the `items` table
+    const matchingItem = await Item.findOne({ it_name: new RegExp(`^${itemName}$`, 'i') });
+
+    if (!matchingItem) {
+      return res.status(404).send({ message: `No item found with name "${itemName}"` });
     }
 
     // Calculate updated quantity
-    const currentQuantity = item.it_quantity || 0; // Default to 0 if undefined
-    const updatedQuantity = currentQuantity + quantity; // Adjust based on req.body.quantity
+    const currentQuantity = matchingItem.it_quantity || 0; // Default to 0 if undefined
+    const updatedQuantity = currentQuantity + quantity;
 
     // Prevent negative quantity
     if (updatedQuantity < 0) {
@@ -472,8 +471,8 @@ app.put('/update-item-quantity/:it_name', async (req, res) => {
       });
     }
 
-    // Update the quantity in the database
-    await Item.updateOne({ _id: item._id }, { it_quantity: updatedQuantity });
+    // Update the quantity of the matched item
+    await Item.updateOne({ _id: matchingItem._id }, { it_quantity: updatedQuantity });
 
     // Respond with success
     res.status(200).send({
