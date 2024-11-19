@@ -15,9 +15,6 @@ const app = express();
 app.use(express.json());
 
 app.use(cors());
-
-
-
 app.use(bodyParser.json());
 
 // Connect to MongoDB Atlas using the URI from .env file
@@ -387,19 +384,64 @@ app.put('/return-item/:id', async (req, res) => {
   }
 });
 
+// app.put('/update-item-quantity/:it_name', async (req, res) => {
+//   const name = req.params.it_name.trim(); // Trim whitespace from the received item name
+//   const { quantity } = req.body;
+
+//   // Check if quantity is provided and is a valid number
+//   if (quantity === undefined || typeof quantity !== 'number') {
+//     return res.status(400).send({ message: 'Invalid quantity provided' });
+//   }
+
+//   console.log('Received it_name:', name);
+
+//   try {
+//     // Trim whitespace from item names in the database
+//     const items = await Item.find({});
+//     const updatePromises = items.map(async (item) => {
+//       const trimmedName = item.it_name.trim();
+//       if (trimmedName !== item.it_name) {
+//         await Item.updateOne({ _id: item._id }, { it_name: trimmedName });
+//         console.log(`Updated item name: "${item.it_name}" to "${trimmedName}"`);
+//       }
+//     });
+
+//     await Promise.all(updatePromises); // Wait for all name updates to complete
+
+//     // Use regex to match the item name in a case-insensitive way, ignoring trailing spaces
+//     const item = await Item.findOne({ it_name: new RegExp(`^${name}$`, 'i') });
+//     console.log('All Items:', (await Item.find({})).map(i => i.it_name.trim())); // Log all items, trimmed, for debugging
+
+//     if (!item) {
+//       return res.status(404).send({ message: `Item with name "${name}" not found` });
+//     }
+
+//     // Calculate the updated quantity
+//     const updatedQuantity = (item.it_quantity || 0) + quantity;
+
+//     // Update the quantity in the database
+//     await Item.updateOne({ _id: item._id }, { it_quantity: updatedQuantity });
+
+//     res.status(200).send({ message: 'Item quantity updated successfully' });
+//   } catch (err) {
+//     console.error('Error updating item quantity:', err);
+//     res.status(500).send({ message: 'Failed to update item quantity', error: err });
+//   }
+// });
+
 app.put('/update-item-quantity/:it_name', async (req, res) => {
   const name = req.params.it_name.trim(); // Trim whitespace from the received item name
   const { quantity } = req.body;
 
-  // Check if quantity is provided and is a valid number
-  if (quantity === undefined || typeof quantity !== 'number') {
+  // Validate quantity
+  if (!Number.isFinite(quantity)) {
     return res.status(400).send({ message: 'Invalid quantity provided' });
   }
 
   console.log('Received it_name:', name);
 
   try {
-    // Trim whitespace from item names in the database
+    // Normalize item names in the database (trim spaces)
     const items = await Item.find({});
     const updatePromises = items.map(async (item) => {
       const trimmedName = item.it_name.trim();
@@ -411,27 +453,42 @@ app.put('/update-item-quantity/:it_name', async (req, res) => {
 
     await Promise.all(updatePromises); // Wait for all name updates to complete
 
-    // Use regex to match the item name in a case-insensitive way, ignoring trailing spaces
+    // Find the item (case-insensitive match)
     const item = await Item.findOne({ it_name: new RegExp(`^${name}$`, 'i') });
-    console.log('All Items:', (await Item.find({})).map(i => i.it_name.trim())); // Log all items, trimmed, for debugging
-
     if (!item) {
-      return res.status(404).send({ message: `Item with name "${name}" not found` });
+      return res
+        .status(404)
+        .send({ message: `Item with name "${name}" not found` });
     }
 
-    // Calculate the updated quantity
-    const updatedQuantity = (item.it_quantity || 0) + quantity;
+    // Calculate updated quantity
+    const currentQuantity = item.it_quantity || 0; // Default to 0 if undefined
+    const updatedQuantity = currentQuantity + quantity; // Adjust based on req.body.quantity
+
+    // Prevent negative quantity
+    if (updatedQuantity < 0) {
+      return res.status(400).send({
+        message: `Insufficient quantity. Current available: ${currentQuantity}`,
+      });
+    }
 
     // Update the quantity in the database
     await Item.updateOne({ _id: item._id }, { it_quantity: updatedQuantity });
 
-    res.status(200).send({ message: 'Item quantity updated successfully' });
+    // Respond with success
+    res.status(200).send({
+      message: 'Item quantity updated successfully',
+      currentQuantity,
+      updatedQuantity,
+    });
   } catch (err) {
     console.error('Error updating item quantity:', err);
-    res.status(500).send({ message: 'Failed to update item quantity', error: err });
+    res.status(500).send({
+      message: 'Failed to update item quantity',
+      error: err.message,
+    });
   }
 });
-
 
 
 // Start the server
